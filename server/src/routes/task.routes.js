@@ -16,7 +16,7 @@ async function validateRelations(project, stageId, assigneeId) {
   if (assigneeId) { const member = await prisma.workspaceMember.findUnique({ where: { userId_workspaceId: { userId: assigneeId, workspaceId: project.workspaceId } } }); if (!member) throw badRequest('Assignee must be a workspace member.'); }
 }
 router.get('/projects/:projectId/tasks', validate(taskQuerySchema, 'query'), asyncHandler(async (req, res) => {
-  await projectAccess(req.user.id, req.params.projectId); const { search, stageId, priority, assigneeId, sortBy, order, page, limit } = req.query;
+  await projectAccess(req.user.id, req.params.projectId); const { search, stageId, priority, assigneeId, sortBy, order, page, limit } = req.validatedQuery;
   const where = { projectId: req.params.projectId, ...(search && { OR: [{ title: { contains: search, mode: 'insensitive' } }, { description: { contains: search, mode: 'insensitive' } }] }), ...(stageId && { stageId }), ...(priority && { priority }), ...(assigneeId && { assigneeId }) };
   const [tasks,total] = await prisma.$transaction([prisma.task.findMany({ where, include: taskInclude, orderBy: { [sortBy]: order }, skip: (page-1)*limit, take: limit }), prisma.task.count({ where })]);
   res.json({ data: tasks, pagination: { page, limit, total, pages: Math.ceil(total/limit) } });
