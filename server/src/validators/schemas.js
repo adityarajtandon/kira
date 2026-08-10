@@ -1,0 +1,13 @@
+import { z } from 'zod';
+export const id = z.string().uuid();
+export const authSchema = z.object({ email: z.email().transform((v) => v.toLowerCase()), password: z.string().min(8).max(72) });
+export const registerSchema = authSchema.extend({ name: z.string().trim().min(2).max(80) });
+export const workspaceSchema = z.object({ name: z.string().trim().min(2).max(80) });
+export const projectSchema = z.object({ name: z.string().trim().min(2).max(100), key: z.string().trim().toUpperCase().regex(/^[A-Z][A-Z0-9]{1,7}$/), description: z.string().max(1000).optional() });
+export const invitationSchema = z.object({ email: z.email().transform((v) => v.toLowerCase()), role: z.enum(['ADMIN', 'MEMBER', 'VIEWER']).default('MEMBER'), expiresInDays: z.coerce.number().int().min(1).max(30).default(7) });
+export const stageSchema = z.object({ name: z.string().trim().min(1).max(50), color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(), position: z.number().int().min(0).optional() });
+export const stageReorderSchema = z.object({ stageIds: z.array(id).min(1).max(50).refine((ids) => new Set(ids).size === ids.length, 'Stage IDs must be unique.') });
+export const taskSchema = z.object({ title: z.string().trim().min(1).max(200), description: z.string().max(10000).optional(), stageId: id, priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'), assigneeId: id.nullable().optional(), dueDate: z.iso.datetime().nullable().optional() });
+export const taskUpdateSchema = taskSchema.partial().refine((value) => Object.keys(value).length > 0, 'At least one field is required.');
+export const commentSchema = z.object({ body: z.string().trim().min(1).max(10000), parentCommentId: id.optional() });
+export const taskQuerySchema = z.object({ search: z.string().max(200).optional(), stageId: id.optional(), priority: z.enum(['LOW','MEDIUM','HIGH','URGENT']).optional(), assigneeId: id.optional(), sortBy: z.enum(['createdAt','dueDate']).default('createdAt'), order: z.enum(['asc','desc']).default('desc'), page: z.coerce.number().int().min(1).default(1), limit: z.coerce.number().int().min(1).max(100).default(50) });

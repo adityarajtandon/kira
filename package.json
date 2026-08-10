@@ -1,0 +1,23 @@
+{
+  "name": "kira",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "test": "npm test -w server",
+    "db:generate": "npm run prisma:generate -w server",
+    "db:migrate": "npm run prisma:migrate -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "hasown": "^2.0.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
