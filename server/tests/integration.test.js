@@ -15,6 +15,8 @@ describe('Kira API integration', () => {
     const agent = await agentFor('owner@test.dev'); const response = await agent.post('/api/workspaces').send({ name:'Acme' }).expect(201);
     expect((await prisma.workspaceMember.findFirst({ where:{ workspaceId:response.body.data.id } })).role).toBe('OWNER');
     expect(await prisma.activityLog.count({ where:{ workspaceId:response.body.data.id, action:'WORKSPACE_CREATED' } })).toBe(1);
+    const invalidProject = await agent.post(`/api/workspaces/${response.body.data.id}/projects`).send({ name:'Invalid key', key:'1' }).expect(400);
+    expect(invalidProject.body.error.message).toBe('Project key must be 2–8 characters, start with a letter, and contain only letters and numbers.');
   });
   test('outsider cannot access a known task id and viewer cannot mutate', async () => {
     const owner = await agentFor('owner@test.dev'); const outsider = await agentFor('outsider@test.dev'); const viewer = await agentFor('viewer@test.dev');
